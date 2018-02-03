@@ -33,7 +33,7 @@ let sheet_iter f =
  * une piste *)
 let init_sheet () =
   let init_cell i j =
-    let c = { value = None; formula = Cst 0.; dependancies = Nil } in
+    let c = { value = None; formula = Cst(Float 0.); dependancies = Nil } in
     thesheet.(i).(j) <- c
   in
   sheet_iter init_cell
@@ -79,10 +79,10 @@ let rec eval_form fo = match fo with
   end
   | Op(o,fs) -> begin
   	 match o with
-  	| S -> List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)
-  	| M -> List.fold_left (fun x y -> x *. y) 1. (List.map eval_form fs)
-  	| A -> (List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)) /. float_of_int (List.length fs)
-  	| MAX -> List.fold_left (fun x y -> if x > y then x else y) min_float (List.map eval_form fs)
+  	| S -> List.fold_left add_number (Int 0) (List.map eval_form fs)
+  	| M -> List.fold_left mult_number (Int 1) (List.map eval_form fs)
+  	| A -> div_number (List.fold_left add_number (Int 0) (List.map eval_form fs)) (Int (List.length fs))
+  	| MAX -> List.fold_left max_number (Float min_float) (List.map eval_form fs)
   end
 
 (* ici un "and", car eval_formula et eval_cell sont a priori

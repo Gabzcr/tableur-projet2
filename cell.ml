@@ -1,8 +1,44 @@
 open Tree
 
 (* les nombres avec lesquels on calcule *)
-type number = float
-let print_number = print_float
+type number = Float of float | Int of int
+let print_number = function
+  | Float(f) -> print_float f
+  | Int(i) -> print_int i
+;;
+
+let string_of_number = function
+  | Float(f) -> string_of_float f
+  | Int(i) -> string_of_int i
+;;
+
+let add_number x y = match x,y with
+  | Int(i1), Int(i2) -> Int(i1 + i2)
+  | Float(f1), Int(i2) -> Float(f1 +. float_of_int i2)
+  | Int(i1), Float(f2) -> Float(float_of_int i1 +. f2)
+  | Float(f1), Float(f2) -> Float(f1 +. f2)
+;;
+
+let mult_number x y = match x,y with
+  | Int(i1), Int(i2) -> Int(i1 * i2)
+  | Float(f1), Int(i2) -> Float(f1 *. float_of_int i2)
+  | Int(i1), Float(f2) -> Float(float_of_int i1 *. f2)
+  | Float(f1), Float(f2) -> Float(f1 *. f2)
+;;
+
+let div_number x y = match x,y with (* pour celle là il faut imposer le résultat en flottant *)
+  | Int(i1), Int(i2) -> Float(float_of_int i1 /. float_of_int i2)
+  | Float(f1), Int(i2) -> Float(f1 /. float_of_int i2)
+  | Int(i1), Float(f2) -> Float(float_of_int i1 /. f2)
+  | Float(f1), Float(f2) -> Float(f1 /. f2)
+;;
+
+let max_number x y = match x,y with
+  | Int(i1), Int(i2) -> if i1 > i2 then x else y
+  | Float(f1), Int(i2) -> if f1 > float_of_int i2 then x else y
+  | Int(i1), Float(f2) -> if float_of_int i1 > f2 then x else y
+  | Float(f1), Float(f2) -> if f1 > f2 then x else y
+;;
 
 (* p.ex. ("B",7) *)
 type cellname = string*int
@@ -44,7 +80,7 @@ type cell = { mutable formula : form; mutable value : number option; mutable dep
 
 (* par défaut, une cellule n'a pas de valeur, et la formule
    correspondante est la constante 0. *)
-let default_cell = { formula = Cst 0.; value = None; dependancies = Nil}
+let default_cell = { formula = Cst(Float 0.); value = None; dependancies = Nil}
 
 
 (************ affichage **************)
@@ -52,7 +88,7 @@ let cell_name2string cn = (fst cn)^(string_of_int (snd cn))
 
 let cell_val2string c = match c.value with
   | None -> "_"
-  | Some n -> string_of_float n
+  | Some n -> string_of_number n
 
 let oper2string = function
   | S -> "SUM"
@@ -82,7 +118,7 @@ let rec show_list f = function
 
 let rec form2string = function
   | Cell c -> cell_name2string (coord_to_cellname c)
-  | Cst n -> string_of_float n
+  | Cst n -> string_of_number n
   | Op(o,fl) ->
      begin
        (oper2string o) ^ "(" ^ list2string form2string fl ^ ")"
