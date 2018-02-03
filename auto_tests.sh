@@ -8,12 +8,13 @@ found=true
 echo "\n **************** Starting Tests *****************"
 for test in $(ls $tests_dir)
 do
+	printf "Testing %-10s : %10s" $test 
 	res=$(./main.native < $tests_dir/$test)
-	printf "Testing %-10s : %10s" $test $res
+	printf "%10s" $res
 	if [ -e $sol_dir/$test ]
 	then
 		solution=$(cat $sol_dir/$test)
-		if [ $solution = $res ]
+		if [ "-"$solution = "-"$res ]
 		then
 			echo "\t\t--Right Answer"
 		else

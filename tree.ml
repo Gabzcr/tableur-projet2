@@ -8,8 +8,8 @@
  * log n <= h <= 3/2 log n
  * On aura toujours un temps logarithmique sur nos opÃ©rations classiques .*)
 
-(* Remarque : 
- * Nos AVL trees sont ici SANS DOUBLON. 
+(* Remarque :
+ * Nos AVL trees sont ici SANS DOUBLON.
  * Cela paraÃ®t en effet appropriÃ© pour l'utilisation qu'on en fait. *)
 
 type 'a avlTree = Nil | Node of 'a * int * 'a avlTree * 'a avlTree
@@ -42,10 +42,10 @@ let right_tree = function
 let equilibrate a = match a with
   | Nil -> Nil
   | Node (_, _, fg, fd) -> let hg = height fg
-			  and hd = height fd in
-			  if (hg + 1) > hd then rotate_right a
-			  else if (hd + 1) > hg then rotate_left a
-			  else a
+         and hd = height fd in
+         if hg > (hd + 1) then rotate_right a
+         else if hd > (hg + 1) then rotate_left a
+         else a
 
 let rec insert x a = match a with
   | Nil -> Node (x, 1, Nil, Nil)
@@ -75,12 +75,12 @@ let _ = tree2list (list2tree [1;2;3;4;5;6;7;8;9;10])
 *)
 
 (* max_tree et min_tree permettent de chercher le noeud maximal ou minimal *)
-(* Le problème c'est qu'on est en non-typé : donc que renvoyer pour 
+(* Le problï¿½me c'est qu'on est en non-typï¿½ : donc que renvoyer pour
  * 'min_tree Nil' ? je travaille donc en type option : on renvoie 'None' si
  * l'arbre AVL n'admet pas de minimum/maximum.
- * Je définis max_o et min_o qui calculent le maximum/minimum selon ces
+ * Je dï¿½finis max_o et min_o qui calculent le maximum/minimum selon ces
  * conventions. *)
-		
+
 let max_o a b = match (a,b) with
   | (None, None) -> None
   | (None, _) -> b
@@ -102,10 +102,10 @@ let rec min_tree = function
   | Node (x, _, fg, fd) -> min_o (Some(x)) (min_o (min_tree fg) (min_tree fd))
 
 
-(* On en déduit la fonction pour supprimer un élément d'un arbre AVL
- * Cette fonction renvoie un arbre dont l'élément a été supprimé
- * qui possède toujours la propriété AVL *)
-				 
+(* On en dï¿½duit la fonction pour supprimer un ï¿½lï¿½ment d'un arbre AVL
+ * Cette fonction renvoie un arbre dont l'ï¿½lï¿½ment a ï¿½tï¿½ supprimï¿½
+ * qui possï¿½de toujours la propriï¿½tï¿½ AVL *)
+
 let rec delete x = function
   | Nil -> Nil
   | Node (y, h, fg, fd) when y <> x -> let new_fg = if x < y then delete x fg else fg
@@ -127,7 +127,7 @@ let rec delete x = function
 				    let new_fd = delete m fd in
 				    Node (m, 1 + max (height new_fd) (height fg), fg, new_fd)
 			   end
-			     
+
 
 (* Examples
 let a = list2tree [0;1;2;3;4;5]

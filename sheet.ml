@@ -25,7 +25,6 @@ let sheet_iter f =
   done
 
 
-
 (* initialisation du tableau : questions un peu subtiles de partage,
  * demandez autour de vous si vous ne comprenez pas pourquoi cela est
  * nécessaire.  Vous pouvez ne pas appeler la fonction ci-dessous,
@@ -61,7 +60,6 @@ let show_sheet () =
 
 
 
-
 (********** calculer les valeurs à partir des formules *************)
 
 (* on marque qu'on doit tout recalculer en remplissant le tableau de "None"
@@ -78,14 +76,14 @@ let rec eval_form fo = match fo with
   	 match (eval_cell p q) with
   	| None -> failwith "eval_form: Unexpected None"
   	| Some(nb) -> nb
-  	end
+  end
   | Op(o,fs) -> begin
   	 match o with
   	| S -> List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)
   	| M -> List.fold_left (fun x y -> x *. y) 1. (List.map eval_form fs)
   	| A -> (List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)) /. float_of_int (List.length fs)
   	| MAX -> List.fold_left (fun x y -> if x > y then x else y) min_float (List.map eval_form fs)
-  	end
+  end
 
 (* ici un "and", car eval_formula et eval_cell sont a priori
    deux fonctions mutuellement récursives *)
@@ -94,6 +92,59 @@ and eval_cell i j =
   if c.value = None then
   	c.value <- Some(eval_form c.formula);
   c.value
+;;
+
+
+(* fonctions qui à partir d'une formule f renvoie la liste des coordonnées des cellules apparaissant dans f (dépendances antérieures) *)
+let back_dependancies f =
+  let l = ref [] in
+  let rec aux = function
+    | Cst(a) -> ()
+    | Cell(a,b) -> l := (a,b)::(!l)
+    | Op(o,fs) -> List.iter aux fs
+  in aux f;
+  !l
+;;
+
+(* fonction qui met à jour les dépendances sachant que la cellule de coordonnées co va recevoir la formule f *)
+let update_back_dependancies co f =
+  let c = read_cell co in
+  let anciennes_dependances = back_dependancies c.formula in
+  let nouvelles_dependances = back_dependancies f in
+  let rec aux_supprime = function
+    | [] -> ()
+    | h::t -> let cellule = read_cell h in
+      cellule.dependancies <- (delete h cellule.dependancies);
+      aux_supprime t
+  in aux_supprime anciennes_dependances;
+  let rec aux_ajoute = function
+    | [] -> ()
+    | h::t -> let cellule = read_cell h in
+      cellule.dependancies <- (insert h cellule.dependancies);
+      aux_ajoute t
+  in aux_ajoute nouvelles_dependances
+;;
+
+(* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
+let update_up_dependancies co =
+  let c = read_cell co in
+  c.value <- None;
+  let rec aux_None = function
+    | Nil -> ()
+    | Node(racine,_,fils_gauche,fils_droit) -> let cellule = read_cell racine in
+      cellule.value <- None;
+      aux_None fils_gauche;
+      aux_None fils_droit
+  in aux_None c.dependancies;
+  (* on doit d'abord tout mettre à None, puis tout recalculer dans les dépendances au cas où les dépendances dépendent d'elles-même entre elles
+  (il y a des valeurs out-of-date à éliminer) *)
+  let _ = eval_cell (fst co) (snd co) in
+  let rec aux_calcule = function
+    | Nil -> ()
+    | Node(racine,_,fils_gauche,fils_droit) ->  let _ = eval_cell (fst racine) (snd racine) in
+      aux_None fils_gauche;
+      aux_None fils_droit
+  in aux_calcule c.dependancies
 ;;
 
 
