@@ -75,15 +75,37 @@ let _ = tree2list (list2tree [1;2;3;4;5;6;7;8;9;10])
 *)
 
 (* max_tree et min_tree permettent de chercher le noeud maximal ou minimal *)
+(* Le problème c'est qu'on est en non-typé : donc que renvoyer pour 
+ * 'min_tree Nil' ? je travaille donc en type option : on renvoie 'None' si
+ * l'arbre AVL n'admet pas de minimum/maximum.
+ * Je définis max_o et min_o qui calculent le maximum/minimum selon ces
+ * conventions. *)
+		
+let max_o a b = match (a,b) with
+  | (None, None) -> None
+  | (None, _) -> b
+  | (_, None) -> a
+  | (Some(x), Some(y)) -> if x > y then a else b
+
+let min_o a b = match (a,b) with
+  | (None, None) -> None
+  | (None, _) -> b
+  | (_, None) -> a
+  | (Some(x), Some(y)) -> if x < y then a else b
 
 let rec max_tree = function
-  | Nil -> min_int
-  | Node (x, _, fg, fd) -> max x (max (max_tree fg) (max_tree fd))
+  | Nil -> None
+  | Node (x, _, fg, fd) -> max_o (Some(x)) (max_o (max_tree fg) (max_tree fd))
 
 let rec min_tree = function
-  | Nil -> max_int
-  | Node (x, _, fg, fd) -> min x (min (min_tree fg) (min_tree fd))
+  | Nil -> None
+  | Node (x, _, fg, fd) -> min_o (Some(x)) (min_o (min_tree fg) (min_tree fd))
 
+
+(* On en déduit la fonction pour supprimer un élément d'un arbre AVL
+ * Cette fonction renvoie un arbre dont l'élément a été supprimé
+ * qui possède toujours la propriété AVL *)
+				 
 let rec delete x = function
   | Nil -> Nil
   | Node (y, h, fg, fd) when y <> x -> let new_fg = if x < y then delete x fg else fg
@@ -92,15 +114,20 @@ let rec delete x = function
 
   | Node (x, h, fg, fd) -> if fg = Nil && fd = Nil then Nil
 			 else if height fg > height fd then
-			   begin let m = max_tree fg in
-				 let new_fg = delete m fg in
-				 Node (m, 1 + max (height new_fg) (height fd), new_fg, fd)
-			   end
+			     begin match max_tree fg with
+				   | None -> failwith "None in 'delete'"
+				   | Some(m) ->
+				      let new_fg = delete m fg in
+				      Node (m, 1 + max (height new_fg) (height fd), new_fg, fd)
+			     end
 			 else
-			   begin let m = min_tree fd in
-				 let new_fd = delete m fd in
-				 Node (m, 1 + max (height new_fd) (height fg), fg, new_fd)
+			   begin match min_tree fd with
+				 | None -> failwith "None in 'delete'"
+				 | Some(m) ->
+				    let new_fd = delete m fd in
+				    Node (m, 1 + max (height new_fd) (height fg), fg, new_fd)
 			   end
+			     
 
 (* Examples
 let a = list2tree [0;1;2;3;4;5]
