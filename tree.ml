@@ -1,11 +1,25 @@
 (************* Un fichier pour manipuler des arbres **************)
 
-(* AVL trees *)
-type 'a searchTree = Nill | Node of 'a * int * 'a searchTree * 'a searchTree
+(* AVL trees
+ * Les AVL trees sont des arbres binaires de recherche tels que
+ * la différence de hauteur entre leur fils gauche et fils droit est
+ * au plus 1.
+ * Cela assure que si n est le nombre de noeuds, alors la hauteur h vérifie
+ * log n <= h <= 3/2 log n
+ * On aura toujours un temps logarithmique sur nos opérations classiques .*)
+
+(* Remarque : 
+ * Nos AVL trees sont ici SANS DOUBLON. 
+ * Cela paraît en effet approprié pour l'utilisation qu'on en fait. *)
+
+type 'a avlTree = Nil | Node of 'a * int * 'a avlTree * 'a avlTree
 
 let height = function
-  | Nill -> 0
+  | Nil -> 0
   | Node (_, h, _, _) -> h
+
+(* Les fonctions de rotation sont essentielles
+ * Ce sont elles qui permettent d'équilibrer l'arbre *)
 
 let rotate_right = function
   | Node (x, h, Node(fg_x, fg_h, fg_gauche, fg_droit), fd) ->
@@ -26,7 +40,7 @@ let right_tree = function
   | _ -> failwith "Pas d'arbre droit"
 
 let equilibrate a = match a with
-  | Nill -> Nill
+  | Nil -> Nil
   | Node (_, _, fg, fd) -> let hg = height fg
 			  and hd = height fd in
 			  if (hg + 1) > hd then rotate_right a
@@ -34,7 +48,7 @@ let equilibrate a = match a with
 			  else a
 
 let rec insert x a = match a with
-  | Nill -> Node (x, 1, Nill, Nill)
+  | Nil -> Node (x, 1, Nil, Nil)
   | Node (y, h, fg, fd) -> equilibrate
 			   (if x = y then a
 			   else if x < y then
@@ -44,12 +58,12 @@ let rec insert x a = match a with
 
 
 let rec list2tree = function
-  | [] -> Nill
+  | [] -> Nil
   | h :: t -> insert h (list2tree t)
 
 let tree2list a =
   let rec tree2list_aux accu = function
-    | Nill ->  accu
+    | Nil ->  accu
     | Node (x, _, fg, fd) -> x :: (tree2list_aux (tree2list_aux accu fg) fd)
   in
   tree2list_aux [] a
@@ -60,21 +74,23 @@ let _ = list2tree [1;2;3;4;5;6;7;8;9]
 let _ = tree2list (list2tree [1;2;3;4;5;6;7;8;9;10])
 *)
 
+(* max_tree et min_tree permettent de chercher le noeud maximal ou minimal *)
+
 let rec max_tree = function
-  | Nill -> min_int
+  | Nil -> min_int
   | Node (x, _, fg, fd) -> max x (max (max_tree fg) (max_tree fd))
 
 let rec min_tree = function
-  | Nill -> max_int
+  | Nil -> max_int
   | Node (x, _, fg, fd) -> min x (min (min_tree fg) (min_tree fd))
 
 let rec delete x = function
-  | Nill -> Nill
+  | Nil -> Nil
   | Node (y, h, fg, fd) when y <> x -> let new_fg = if x < y then delete x fg else fg
 				     and new_fd = if x > y then delete x fd else fd in
 				     Node (y, 1 + max (height new_fg) (height new_fd), new_fg, new_fd)
 
-  | Node (x, h, fg, fd) -> if fg = Nill && fd = Nill then Nill
+  | Node (x, h, fg, fd) -> if fg = Nil && fd = Nil then Nil
 			 else if height fg > height fd then
 			   begin let m = max_tree fg in
 				 let new_fg = delete m fg in
@@ -91,3 +107,10 @@ let a = list2tree [0;1;2;3;4;5]
 let _ = tree2list (delete 4 a)
 let _ = delete 4 a
 *)
+
+(* Autres fonctions *)
+let rec search x = function
+  | Nil -> false
+  | Node (y, _, fg, fd) -> if x = y then true
+			   else if x < y then search x fg
+			   else search x fd
