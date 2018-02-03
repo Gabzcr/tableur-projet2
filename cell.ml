@@ -39,8 +39,8 @@ type form = Cst of number | Cell of (int*int) | Op of oper * form list
 (* On a rajouté un champ : dependancies
  * Lorsqu'on modifie une cellule wlog A1, il faut être capable de mettre à 'None' les cellules
  * qui en dépendent - ie les cellules pour lesquelles 'A1' apparaît dans la formule) *)
- 
-type cell = { mutable formula : form; mutable value : number option; mutable dependancies : int * int searchTree}
+
+type cell = { mutable formula : form; mutable value : number option; mutable dependancies : (int * int) avlTree}
 
 (* par défaut, une cellule n'a pas de valeur, et la formule
    correspondante est la constante 0. *)

@@ -1,5 +1,6 @@
 (* tableau de cellules *)
 open Cell
+open Tree
 
 let naive = ref false;;
 
@@ -33,7 +34,7 @@ let sheet_iter f =
  * une piste *)
 let init_sheet () =
   let init_cell i j =
-    let c = { value = None; formula = Cst 0. } in
+    let c = { value = None; formula = Cst 0.; dependancies = Nil } in
     thesheet.(i).(j) <- c
   in
   sheet_iter init_cell
