@@ -1,6 +1,8 @@
 (* tableau de cellules *)
 open Cell
 
+let naive = ref false;;
+
 let size = (20,10) (* lignes, colonnes *)
 
 (* le tableau que l'on manipule dans le programme *)
@@ -68,23 +70,23 @@ let invalidate_sheet () =
   sheet_iter f
 ;;
 
-(* à faire : le cœur du programme *)    
+(* à faire : le cœur du programme *)
 let rec eval_form fo = match fo with
   | Cst n -> n
   | Cell (p,q) -> begin
   	 match (eval_cell p q) with
   	| None -> failwith "eval_form: Unexpected None"
-  	| Some(nb) -> nb 
+  	| Some(nb) -> nb
   	end
   | Op(o,fs) -> begin
   	 match o with
   	| S -> List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)
   	| M -> List.fold_left (fun x y -> x *. y) 1. (List.map eval_form fs)
   	| A -> (List.fold_left (fun x y -> x +. y) 0. (List.map eval_form fs)) /. float_of_int (List.length fs)
-  	| MAX -> List.fold_left (fun x y -> if x > y then x else y) min_float (List.map eval_form fs) 
+  	| MAX -> List.fold_left (fun x y -> if x > y then x else y) min_float (List.map eval_form fs)
   	end
 
-(* ici un "and", car eval_formula et eval_cell sont a priori 
+(* ici un "and", car eval_formula et eval_cell sont a priori
    deux fonctions mutuellement récursives *)
 and eval_cell i j =
   let c = read_cell (i,j) in
@@ -92,7 +94,7 @@ and eval_cell i j =
   	c.value <- Some(eval_form c.formula);
   c.value
 ;;
-  
+
 
 let recompute_sheet () =
   invalidate_sheet ();

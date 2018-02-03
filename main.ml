@@ -14,6 +14,9 @@ let parse () = Parser.debut Lexer.token lexbuf
 (*** fin de la partie "incantatoire" ***)
 
 let spreadsheet () =
+      let speclist = [("-naive", Arg.Set naive, "Switch to naive mode")]
+      in let usage_msg = "\nThis is an ocaml program to work on a grid of values defined by formulas.\n";
+      in Arg.parse speclist print_endline usage_msg;
       let result = parse () in
       begin
         run_script result;
