@@ -82,7 +82,7 @@ let rec eval_form fo = match fo with
   	| S -> List.fold_left add_number (Int 0) (List.map eval_form fs)
   	| M -> List.fold_left mult_number (Int 1) (List.map eval_form fs)
   	| A -> div_number (List.fold_left add_number (Int 0) (List.map eval_form fs)) (Int (List.length fs))
-  	| MAX -> List.fold_left max_number (Float min_float) (List.map eval_form fs)
+  	| MAX -> List.fold_left max_number (Int min_int) (List.map eval_form fs)
   end
 
 (* ici un "and", car eval_formula et eval_cell sont a priori
