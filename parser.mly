@@ -1,5 +1,5 @@
 %{
-(* --- pr�ambule: ici du code Caml --- *)
+(* --- préambule: ici du code Caml --- *)
 
 open Cell
 open Command
@@ -26,11 +26,11 @@ let intervalle2list f1 f2 = match (f1, f2) with
 
 
 %}
-/* �num�ration des lex�mes, ceux-ci sont d�crits (par vous) dans lexer.mll */
+/* énumération des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
-%token <int> INT       /* le lex�me INT a un attribut entier */
-%token <float> NBR       /* le lex�me NBR a un attribut number */
-%token <string> CELLROW       /* le lex�me CELLROW a un attribut, de type string */
+%token <int> INT       /* le lexème INT a un attribut entier */
+%token <float> NBR       /* le lexème NBR a un attribut float */
+%token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
 %token LPAREN RPAREN EQUAL SEMICOL DOT COLON
 %token SUM MULT AVERAGE MAX SHOW SHOWALL
 %token EOF
