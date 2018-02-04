@@ -1,16 +1,37 @@
 %{
-(* --- préambule: ici du code Caml --- *)
+(* --- prï¿½ambule: ici du code Caml --- *)
 
 open Cell
 open Command
 
-%}
-/* énumération des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
-%token <int> INT       /* le lexème INT a un attribut entier */
-%token <float> NBR       /* le lexème NBR a un attribut number */
-%token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
-%token LPAREN RPAREN EQUAL SEMICOL DOT
+let intervalle2list f1 f2 = match (f1, f2) with
+  | (Cell (co1), Cell (co2) :: t) ->
+  begin
+    let l = ref t in
+    let x1 = min (fst co1) (fst co2)
+    and x2 = max (fst co1) (fst co2)
+    and y1 = min (snd co1) (snd co2)
+    and y2 = max (snd co1) (snd co2) in
+    for i=x1 to x2 do
+      for j=y1 to y2 do
+        l := Cell(i,j) :: !l
+      done;
+    done;
+    !l
+  end
+  | (_, _) -> failwith "Type 'Cell' attendu"
+;;
+
+
+
+%}
+/* ï¿½numï¿½ration des lexï¿½mes, ceux-ci sont dï¿½crits (par vous) dans lexer.mll */
+
+%token <int> INT       /* le lexï¿½me INT a un attribut entier */
+%token <float> NBR       /* le lexï¿½me NBR a un attribut number */
+%token <string> CELLROW       /* le lexï¿½me CELLROW a un attribut, de type string */
+%token LPAREN RPAREN EQUAL SEMICOL DOT COLON
 %token SUM MULT AVERAGE MAX SHOW SHOWALL
 %token EOF
 
@@ -59,4 +80,5 @@ clist:
   forlist:
    | formula { [$1] }
    | formula SEMICOL forlist { $1::$3 }
+   | formula COLON forlist { intervalle2list $1 $3 }
   ;
