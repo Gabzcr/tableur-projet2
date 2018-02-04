@@ -14,6 +14,7 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | ')'             { RPAREN }
   | '='             { EQUAL }
   | ';'             { SEMICOL }
+  | ':'             { COLON }
   | '.'             { DOT }
   | "Show" { SHOW }
   | "ShowAll" { SHOWALL }

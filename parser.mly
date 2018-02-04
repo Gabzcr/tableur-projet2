@@ -4,6 +4,27 @@
 open Cell
 open Command
 
+
+let intervalle2list f1 f2 = match (f1, f2) with
+  | (Cell (co1), Cell (co2) :: t) ->
+  begin
+    let l = ref t in
+    let x1 = min (fst co1) (fst co2)
+    and x2 = max (fst co1) (fst co2)
+    and y1 = min (snd co1) (snd co2)
+    and y2 = max (snd co1) (snd co2) in
+    for i=x1 to x2 do
+      for j=y1 to y2 do
+        l := Cell(i,j) :: !l
+      done;
+    done;
+    !l
+  end
+  | (_, _) -> failwith "Type 'Cell' attendu"
+;;
+
+
+
 %}
 /* énumération des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
@@ -11,7 +32,7 @@ open Command
 %token <float> NBR       /* le lexème NBR a un attribut float */
 %token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
 %token <string> SHEET       /* le s avant le numéro de la feuille de calcul */
-%token LPAREN RPAREN EQUAL SEMICOL DOT
+%token LPAREN RPAREN EQUAL SEMICOL DOT COLON
 %token SUM MULT AVERAGE MAX SHOW SHOWALL SWITCHTO
 %token EOF
 
@@ -64,4 +85,5 @@ clist:
   forlist:
    | formula { [$1] }
    | formula SEMICOL forlist { $1::$3 }
+   | formula COLON forlist { intervalle2list $1 $3 }
   ;
