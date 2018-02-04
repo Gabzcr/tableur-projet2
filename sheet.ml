@@ -126,7 +126,7 @@ let update_back_dependancies co f =
 ;;
 
 (* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
-let update_up_dependancies co =
+let rec update_up_dependancies co =
   let c = read_cell co in
   c.value <- None;
   let rec aux_None = function
@@ -141,10 +141,42 @@ let update_up_dependancies co =
   let _ = eval_cell (fst co) (snd co) in
   let rec aux_calcule = function
     | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) ->  let _ = eval_cell (fst racine) (snd racine) in
-      aux_None fils_gauche;
-      aux_None fils_droit
+    | Node(racine,_,fils_gauche,fils_droit) ->  let c0 = read_cell racine in
+						if c0.value = None then
+						  begin
+						    let _ = eval_cell (fst racine) (snd racine) in
+						    update_up_dependancies racine;
+						  end;
+						aux_calcule fils_gauche;
+						aux_calcule fils_droit
   in aux_calcule c.dependancies
+
+;;
+
+(* Les cycles :
+ * Avant de faire un calcul, on v�rifie s'il n'y a pas de cycle.
+ * Les cycles cr�ent des stack-overflow : car avant de faire un calcul, on met les valeurs de toutes
+ * les d�pendances montantes � None de fa�on r�cursive. Or, s'il y a un cycle, on ne s'arr�tera jamais
+ * de mettre des valeurs � None.
+ * M�me si on corrige cela, lors du calcul, on calcule une d�pendance ssi sa valeur est � None. Donc, si
+ * les d�pendances sont cycliques, on fera une boucle infinie d'appels r�cursifs.
+
+ * On suppose qu'on ins�re une nouvelle formule A1=f(..) dans la feuille de calcul.
+ * On suppose que la feuille de calcul est initialement acyclique. Alors il suffit de v�rifier que f(..)
+ * ne n�cessite pas la valeur de A1. Si on prend un cycle Ai ->* Ai, soit il passe par A1, ie on a
+ * Ai ->* A1 ->* Ai donc A1 ->* Ai ->* A1 donc f(..) n�cessite A1; soit il ne passe pas par A1, donc est
+ * ind�pendant de f(..), ce qui est impossible car la feuille de calcul est suppos�e initialement acyclique. *)
+
+let uncycling_formula co f =
+  (** Regarde si la formule co=f(..) n'est pas cyclique, en supposant que la feuille de calcule n'est pas cyclique. *)
+  let rec co_needed = function
+      (* La remarque pr�c�dente nous assure que cette fonction termine bien, et qu'il n'y a pas besoin de structure
+       * de donn�e pour retenir chaque cellule qu'on croise dans les formules *)
+    | Cell c -> if c = co then true else let c0 = read_cell c in co_needed c0.formula
+    | Cst _ -> false
+    | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed l)) false fl
+  in
+  not (co_needed f)
 ;;
 
 

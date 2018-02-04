@@ -55,11 +55,15 @@ let run_command c = match c with
     begin
        let co = cellname_to_coord cn in
        eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
-       if not(!naive) then update_back_dependancies co f; (* attention à l'ordre ici pour ne pas perdre l'actuelle formule *)
-       (* cas naif: tous les arbres de dépendances restent toujours à Nil et on les ignore *)
-       update_cell_formula co f;
-       if !naive then invalidate_sheet ()
-       else update_up_dependancies co
+       if !naive || (not !naive && uncycling_formula co f) then
+        begin
+          if not(!naive) then update_back_dependancies co f; (* attention à l'ordre ici pour ne pas perdre l'actuelle formule *)
+          (* cas naif: tous les arbres de dépendances restent toujours à Nil et on les ignore *)
+          update_cell_formula co f;
+         if !naive then invalidate_sheet ()
+         else update_up_dependancies co
+        end
+       else p_debug ("\tSkip" ^ "=" ^ (form2string f) ^ "\n")
     end
 ;;
 
