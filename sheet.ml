@@ -114,13 +114,13 @@ let update_back_dependancies co f =
   let rec aux_supprime = function
     | [] -> ()
     | h::t -> let cellule = read_cell h in
-      cellule.dependancies <- (delete h cellule.dependancies);
+      cellule.dependancies <- (delete co cellule.dependancies);
       aux_supprime t
   in aux_supprime anciennes_dependances;
   let rec aux_ajoute = function
     | [] -> ()
     | h::t -> let cellule = read_cell h in
-      cellule.dependancies <- (insert h cellule.dependancies);
+      cellule.dependancies <- (insert co cellule.dependancies);
       aux_ajoute t
   in aux_ajoute nouvelles_dependances
 ;;
