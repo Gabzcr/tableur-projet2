@@ -136,6 +136,7 @@ let update_up_dependancies co =
     | Nil -> ()
     | Node(racine,_,fils_gauche,fils_droit) -> let cellule = read_cell racine in
       cellule.value <- None;
+      aux_None cellule.dependancies;
       aux_None fils_gauche;
       aux_None fils_droit
   in aux_None c.dependancies;
@@ -144,10 +145,38 @@ let update_up_dependancies co =
   let _ = eval_cell (fst co) (snd co) in
   let rec aux_calcule = function
     | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) ->  let _ = eval_cell (fst racine) (snd racine) in
+    | Node(racine,_,fils_gauche,fils_droit) ->  let cellule = read_cell racine in
+      let _ = eval_cell (fst racine) (snd racine) in
+      aux_calcule cellule.dependancies;
       aux_calcule fils_gauche;
       aux_calcule fils_droit
   in aux_calcule c.dependancies
+;;
+
+(* Les cycles :
+ * Avant de faire un calcul, on vérifie s'il n'y a pas de cycle.
+ * Les cycles créent des stack-overflow : car avant de faire un calcul, on met les valeurs de toutes
+ * les dépendances montantes à None de façon récursive. Or, s'il y a un cycle, on ne s'arrêtera jamais
+ * de mettre des valeurs à None.
+ * Même si on corrige cela, lors du calcul, on calcule une dépendance ssi sa valeur est à None. Donc, si
+ * les dépendances sont cycliques, on fera une boucle infinie d'appels récursifs.
+
+ * On suppose qu'on insère une nouvelle formule A1=f(..) dans la feuille de calcul.
+ * On suppose que la feuille de calcul est initialement acyclique. Alors il suffit de vérifier que f(..)
+ * ne nécessite pas la valeur de A1. Si on prend un cycle Ai ->* Ai, soit il passe par A1, ie on a
+ * Ai ->* A1 ->* Ai donc A1 ->* Ai ->* A1 donc f(..) nécessite A1; soit il ne passe pas par A1, donc est
+ * indépendant de f(..), ce qui est impossible car la feuille de calcul est supposée initialement acyclique. *)
+
+let uncycling_formula co f =
+  (** Regarde si la formule co=f(..) n'est pas cyclique, en supposant que la feuille de calcule n'est pas cyclique. *)
+  let rec co_needed = function
+      (* La remarque précécente nous assure que cette fonction termine bien, et qu'il n'y a pas besoin de structure
+       * de donnée pour retenir chaque cellule qu'on croise dans les formules *)
+    | Cell c -> if c = co then true else let co = read_cell c in co_needed co.formula
+    | Cst _ -> false
+    | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed l)) false fl
+  in
+  not (co_needed f)
 ;;
 
 
