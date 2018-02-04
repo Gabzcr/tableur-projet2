@@ -111,7 +111,17 @@ let update_back_dependancies co f =
   let c = read_cell co in
   let anciennes_dependances = back_dependancies c.formula in
   let nouvelles_dependances = back_dependancies f in
-  let rec aux_supprime = function
+
+  (* Il est important de se rappeler que wlog A1.dependancies contient la liste des cellules
+   * qui contiennt A1 dans leur formule. Ici on change la formule de c. Donc si Ai est dans
+   * anciennes_dependances, il faut supprimer c de Ai.dependancies. Et si Aj est dans
+   * nouvelles_dependances, il faut ajouter c à Aj.dependancies. *)
+  let apply2all_dep f0 l =
+    List.iter (fun ci -> let cell_i = read_cell ci in cell_i.dependancies <- f0 cell_i.dependancies) l
+  in
+  apply2all_dep (delete co) anciennes_dependances;
+  apply2all_dep (insert co) nouvelles_dependances
+  (*let rec aux_supprime = function
     | [] -> ()
     | h::t -> let cellule = read_cell h in
       cellule.dependancies <- (delete h cellule.dependancies);
@@ -122,28 +132,37 @@ let update_back_dependancies co f =
     | h::t -> let cellule = read_cell h in
       cellule.dependancies <- (insert h cellule.dependancies);
       aux_ajoute t
-  in aux_ajoute nouvelles_dependances
+  in aux_ajoute nouvelles_dependances*)
+
 ;;
 
 (* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
-let update_up_dependancies co =
+let rec update_up_dependancies co =
   let c = read_cell co in
   c.value <- None;
   let rec aux_None = function
     | Nil -> ()
     | Node(racine,_,fils_gauche,fils_droit) -> let cellule = read_cell racine in
-      cellule.value <- None;
-      aux_None fils_gauche;
-      aux_None fils_droit
+					       cellule.value <- None;
+					       aux_None fils_gauche;
+					       aux_None fils_droit
   in aux_None c.dependancies;
+
   (* on doit d'abord tout mettre à None, puis tout recalculer dans les dépendances au cas où les dépendances dépendent d'elles-même entre elles
   (il y a des valeurs out-of-date à éliminer) *)
   let _ = eval_cell (fst co) (snd co) in
   let rec aux_calcule = function
     | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) ->  let _ = eval_cell (fst racine) (snd racine) in
-      aux_None fils_gauche;
-      aux_None fils_droit
+    | Node(racine,_,fils_gauche,fils_droit) ->  let c = read_cell racine in
+						if c.value = None then
+						  begin
+						    let _ = eval_cell (fst racine) (snd racine) in
+						    update_up_dependancies racine
+						  end;
+						aux_calcule fils_gauche;
+						aux_calcule fils_droit
+      (*aux_None fils_gauche;
+      aux_None fils_droit*)
   in aux_calcule c.dependancies
 ;;
 

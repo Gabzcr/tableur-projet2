@@ -74,7 +74,8 @@ type form = Cst of number | Cell of (int*int) | Op of oper * form list
 
 (* On a rajouté un champ : dependancies
  * Lorsqu'on modifie une cellule wlog A1, il faut être capable de mettre à 'None' les cellules
- * qui en dépendent - ie les cellules pour lesquelles 'A1' apparaît dans la formule) *)
+ * qui en dépendent - ie les cellules pour lesquelles 'A1' apparaît dans la formule)
+ * Ainsi, dependancies contient les coordonnées des cellules qui contiennent 'A1' dans leur formule *)
 
 type cell = { mutable formula : form; mutable value : number option; mutable dependancies : (int * int) avlTree}
 
