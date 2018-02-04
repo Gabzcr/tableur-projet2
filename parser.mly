@@ -1,15 +1,15 @@
 %{
-(* --- préambule: ici du code Caml --- *)
+(* --- prÃ©ambule: ici du code Caml --- *)
 
 open Cell
 open Command
 
 %}
-/* énumération des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
+/* Ã©numÃ©ration des lexÃ¨mes, ceux-ci sont dÃ©crits (par vous) dans lexer.mll */
 
-%token <int> INT       /* le lexème INT a un attribut entier */
-%token <float> NBR       /* le lexème NBR a un attribut number */
-%token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
+%token <int> INT       /* le lexÃ¨me INT a un attribut entier */
+%token <float> NBR       /* le lexÃ¨me NBR a un attribut float */
+%token <string> CELLROW       /* le lexÃ¨me CELLROW a un attribut, de type string */
 %token LPAREN RPAREN EQUAL SEMICOL DOT
 %token SUM MULT AVERAGE MAX SHOW SHOWALL
 %token EOF

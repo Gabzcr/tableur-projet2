@@ -75,10 +75,10 @@ let _ = tree2list (list2tree [1;2;3;4;5;6;7;8;9;10])
 *)
 
 (* max_tree et min_tree permettent de chercher le noeud maximal ou minimal *)
-(* Le probl�me c'est qu'on est en non-typ� : donc que renvoyer pour
+(* Le problème c'est qu'on est en non-typé : donc que renvoyer pour
  * 'min_tree Nil' ? je travaille donc en type option : on renvoie 'None' si
  * l'arbre AVL n'admet pas de minimum/maximum.
- * Je d�finis max_o et min_o qui calculent le maximum/minimum selon ces
+ * Je définis max_o et min_o qui calculent le maximum/minimum selon ces
  * conventions. *)
 
 let max_o a b = match (a,b) with

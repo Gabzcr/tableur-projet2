@@ -1,14 +1,14 @@
 {
-  open Parser;;        (* le type "token" est défini dans parser.mli *)
-(* ce n'est pas à vous d'écrire ce fichier, il est engendré automatiquement *)
+  open Parser;;        (* le type "token" est dÃ©fini dans parser.mli *)
+(* ce n'est pas Ã  vous d'Ã©crire ce fichier, il est engendrÃ© automatiquement *)
 }
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | [' ' '\t' '\n']     { token lexbuf }    (* on saute les blancs et les tabulations *)
- 	     	   	           (* token: appel récursif *)
+ 	     	   	           (* token: appel rÃ©cursif *)
                                    (* lexbuf: argument implicite
-                                      associé au tampon où sont
-                                      lus les caractères *)
+                                      associÃ© au tampon oÃ¹ sont
+                                      lus les caractÃ¨res *)
   | eof             { EOF }
   | '('             { LPAREN }
   | ')'             { RPAREN }
@@ -21,6 +21,6 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "MULT" { MULT }
   | "MAX" { MAX }
   | "AVERAGE" { AVERAGE }
-  | ['0'-'9']+'.'['0'-'9'] as s { NBR (float_of_string s) } 
-  | ['0'-'9']+ as s { INT (int_of_string s) } 
+  | ['0'-'9']+'.'['0'-'9'] as s { NBR (float_of_string s) }
+  | ['0'-'9']+ as s { INT (int_of_string s) }
   | ['A'-'Z']+ as s { CELLROW s }
