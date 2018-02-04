@@ -6,7 +6,8 @@ open Sheet
  - La modification d'une cellule avec une nouvelle formule,
  - l'affichage d'une cellule,
  - l'affichage de toute la feuille *)
-type comm = Upd of cellname * form | Show of cellname | ShowAll
+type sheetname = string*int;;
+type comm = Upd of cellname * form | Show of cellname | ShowAll | SwitchTo of sheetname
 
 
 (************ affichage **************)
@@ -25,6 +26,12 @@ let show_comm c =
        ps ")"
      end
   | ShowAll -> ps "ShowAll"
+  | SwitchTo (s,i) ->
+    begin
+      ps "SwitchTo ";
+      ps s;
+      print_int i;
+    end
 
 (************ faire tourner les commandes **************)
 
@@ -65,6 +72,7 @@ let run_command c = match c with
         end
        else p_debug ("\tSkip" ^ "=" ^ (form2string f) ^ "\n")
     end
+  | SwitchTo(s,i) -> feuille_courante := i;
 ;;
 
 (* exécuter une liste de commandes *)

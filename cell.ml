@@ -80,7 +80,7 @@ type cell = { mutable formula : form; mutable value : number option; mutable dep
 
 (* par défaut, une cellule n'a pas de valeur, et la formule
    correspondante est la constante 0. *)
-let default_cell = { formula = Cst(Float 0.); value = None; dependancies = Nil}
+let default_cell = { formula = Cst(Int 0); value = None; dependancies = Nil}
 
 
 (************ affichage **************)

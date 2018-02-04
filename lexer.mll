@@ -17,6 +17,7 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | '.'             { DOT }
   | "Show" { SHOW }
   | "ShowAll" { SHOWALL }
+  | "SwitchTo" { SWITCHTO }
   | "SUM" { SUM }
   | "MULT" { MULT }
   | "MAX" { MAX }
@@ -24,3 +25,4 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | ('-'|'+')?['0'-'9']+'.'['0'-'9']* as s { NBR (float_of_string s) }
   | ['0'-'9']+ as s { INT (int_of_string s) }
   | ['A'-'Z']+ as s { CELLROW s }
+  | 's'+       as s { SHEET s }

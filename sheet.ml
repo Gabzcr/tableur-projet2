@@ -3,17 +3,19 @@ open Cell
 open Tree
 
 let naive = ref false;;
+let feuille_courante = ref 1;;
 
 let size = (20,10) (* lignes, colonnes *)
 
 (* le tableau que l'on manipule dans le programme *)
 (* tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
-let thesheet = Array.make_matrix (fst size) (snd size) default_cell
 
-let read_cell co = thesheet.(fst co).(snd co)
+let sheets = Array.init 10 (fun _ -> Array.make_matrix (fst size) (snd size) default_cell);; (* On crée nos 10 feuilles de calcul vides *)
 
-let update_cell_formula co f = thesheet.(fst co).(snd co).formula <- f
-let update_cell_value co v = thesheet.(fst co).(snd co).value <- v
+let read_cell co = sheets.(!feuille_courante).(fst co).(snd co)
+
+let update_cell_formula co f = sheets.(!feuille_courante).(fst co).(snd co).formula <- f
+let update_cell_value co v = sheets.(!feuille_courante).(fst co).(snd co).value <- v
 
 
 (* exécuter une fonction (f) sur tout le tableau *)
@@ -31,15 +33,19 @@ let sheet_iter f =
  * modifier une case du tableau à l'aide de update_cell_formula, et
  * regarder ce que ça donne sur le tableau : cela devrait vous donner
  * une piste *)
-let init_sheet () =
+let init_sheet k = (* il faut préciser la feuille de calcul à initialiser *)
   let init_cell i j =
     let c = { value = None; formula = Cst(Float 0.); dependancies = Nil } in
-    thesheet.(i).(j) <- c
+    sheets.(k).(i).(j) <- c
   in
   sheet_iter init_cell
+;;
 
 (* on y va, on initialise *)
-let _ = init_sheet ()
+for k = 0 to 9 do
+  let _ = init_sheet k in ();
+done
+;;
 
 
 (* affichage rudimentaire du tableau *)

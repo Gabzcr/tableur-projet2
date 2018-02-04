@@ -1,0 +1,7 @@
+A1=1.0
+A2=2.0
+A3=3.0
+SwitchTo s2
+A1=SUM(A2;A3)
+SwitchTo s1
+Show A1
