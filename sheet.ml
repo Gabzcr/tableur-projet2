@@ -172,7 +172,7 @@ let uncycling_formula co f =
   let rec co_needed = function
       (* La remarque précécente nous assure que cette fonction termine bien, et qu'il n'y a pas besoin de structure
        * de donnée pour retenir chaque cellule qu'on croise dans les formules *)
-    | Cell c -> if c = co then true else let co = read_cell c in co_needed co.formula
+    | Cell c -> if c = co then true else let c0 = read_cell c in co_needed c0.formula
     | Cst _ -> false
     | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed l)) false fl
   in
