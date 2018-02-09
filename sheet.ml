@@ -114,24 +114,17 @@ let back_dependancies f =
 
 (* fonction qui met à jour les dépendances sachant que la cellule de coordonnées co va recevoir la formule f *)
 let update_back_dependancies co f =
-  (* Printf.printf("%i %i: dependancies changed:\n") (fst co) (snd co); *)
+  let rec apply_to_dependancies fonction = function (* fonction d'ordre supérieure *)
+    | [] -> ()
+    | h::t -> let cellule = read_cell h in
+      cellule.dependancies <- (fonction co cellule.dependancies);
+      apply_to_dependancies fonction t
+  in
   let c = read_cell co in
   let anciennes_dependances = back_dependancies c.formula in
   let nouvelles_dependances = back_dependancies f in
-  let rec aux_supprime = function
-    | [] -> ()
-    | h::t -> let cellule = read_cell h in
-      cellule.dependancies <- (delete co cellule.dependancies);
-      (* Printf.printf("co supprimé dans %i %i\n") (fst h) (snd h); *)
-      aux_supprime t
-  in aux_supprime anciennes_dependances;
-  let rec aux_ajoute = function
-    | [] -> ()
-    | h::t -> let cellule = read_cell h in
-      cellule.dependancies <- (insert co cellule.dependancies);
-      (*Printf.printf("co ajouté dans %i %i\n") (fst h) (snd h);*) (* pour le déboggage *)
-      aux_ajoute t
-  in aux_ajoute nouvelles_dependances
+  apply_to_dependancies delete anciennes_dependances;
+  apply_to_dependancies insert nouvelles_dependances
 ;;
 
 (* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
