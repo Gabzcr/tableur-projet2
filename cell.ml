@@ -48,17 +48,42 @@ type cellname = string*int
  * elles ne marchent que pour des noms de colonnes ne comportant qu'un
  * caractère *)
 let cellname_to_coord cn =
+  let column = ref 0 in
   if String.length (fst cn) > 1 then
-    failwith "cellname_to_coord : désolé, je ne sais pas faire"
-  else let column = int_of_char (fst cn).[0] - 65 in
-       (snd cn -1, column)
-let coord_to_cellname co =
-  let column_nbr = snd co in
-  if column_nbr > 25 then
-    failwith "coord_to_cellname : cela ne devrait pas se produire"
-  else
-    (String.make 1 (char_of_int (column_nbr + 65)), fst co +1)
+  begin
+    for i=0 to (String.length (fst cn) -1) do
+      let lettre = int_of_char (fst cn).[i] - 65 in
+      if !column = 0 then column := lettre
+      else column := 26*(!column + 1) + lettre; (* lettres de 0 à 25 *)
+    done
+  end
+  else column := int_of_char (fst cn).[0] - 65;
+  (snd cn -1, !column)
+;;
 
+(* En itératif :
+let coord_to_cellname co =
+  let column_nbr = ref (snd co) in
+  let name = ref "" in
+  while !column_nbr != 0 do
+    let lettre = string_of_int (!column_nbr mod 26 + 65) in
+    name := (String.concat "" [lettre; !name]);
+    column_nbr := !column_nbr/26;
+  done;
+  (!name, fst co + 1)
+;;
+*)
+
+(* En récursif : *)
+let coord_to_cellname co =
+  let rec aux co2 name =
+      if co2 = 0 then name
+    else
+      let lettre = string_of_int (co2 mod 26 + 65) in
+      aux (co2/26) (String.concat "" [lettre; name])
+  in let name = aux (snd co) "" in
+  (name, fst co + 1)
+;;
 
 (* operations que l'on peut utiliser dans les formules *)
 type oper = S | M | A | MAX (* sum, multiply, average, max *)

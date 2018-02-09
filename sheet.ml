@@ -5,7 +5,7 @@ open Tree
 let naive = ref false;;
 let feuille_courante = ref 1;;
 
-let size = (20,10) (* lignes, colonnes *)
+let size = (100,100) (* lignes, colonnes *) (* Il fallait changer la taille pour autoriser des noms de colonne sur plusieurs lettres. *)
 
 (* le tableau que l'on manipule dans le programme *)
 (* tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
