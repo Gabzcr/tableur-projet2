@@ -1,0 +1,7 @@
+SwitchTo s2
+A1=100.
+A3=SUM(A1;A2)
+SwitchTo s1
+D1=s2(10.0;20.0)
+D1=s2(1.0;2.0)
+Show D1

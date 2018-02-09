@@ -67,6 +67,11 @@ clist:
 
   tableau:
    | SHEET INT { ($1,$2) }
+  ;
+
+  t_function:
+   | SHEET INT { ($2) }
+  ;
 
   operand:
    | SUM { S }
@@ -79,6 +84,7 @@ clist:
    | NBR { Cst(Float $1) }
    | INT { Cst( Int $1) }
    | cell { Cell (Cell.cellname_to_coord $1) }
+   | t_function LPAREN formula SEMICOL formula RPAREN { Fun($1,$3,$5) }
    | operand LPAREN forlist RPAREN { Op($1,$3) }
   ;
 

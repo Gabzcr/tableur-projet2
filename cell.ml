@@ -64,8 +64,9 @@ let coord_to_cellname co =
 type oper = S | M | A | MAX (* sum, multiply, average, max *)
 
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
- * ses arguments *)
+ * ses arguments. On rajoute la possibilité de faire appel à une fonction. *)
 type form = Cst of number | Cell of (int*int) | Op of oper * form list
+                          | Fun of (int * form * form)
 
 (* cellules *)
 (* un type enregistrement
@@ -123,5 +124,6 @@ let rec form2string = function
      begin
        (oper2string o) ^ "(" ^ list2string form2string fl ^ ")"
      end
+  | Fun(s,arg1,arg2) -> "s" ^ (string_of_int s) ^ "(" ^ form2string arg1 ^ ";" ^ form2string arg2 ^ ")"
 
 let rec show_form f = ps (form2string f)

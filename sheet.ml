@@ -90,6 +90,28 @@ let rec eval_form fo = match fo with
   	| A -> div_number (List.fold_left add_number (Int 0) (List.map eval_form fs)) (Int (List.length fs))
   	| MAX -> List.fold_left max_number (Int min_int) (List.map eval_form fs)
   end
+  | Fun(s,arg1,arg2) -> begin
+      (* On calcule les arguments, puis on bascule sur la feuille s *)
+      (* Les arguments sont alors placés dans A1 et A2 et le résultat va dans A3 *)
+      let arg1_value = eval_form arg1
+      and arg2_value = eval_form arg2
+      and current_sheet = !feuille_courante in
+
+      feuille_courante := s;
+
+      let cell_a1 = read_cell (cellname_to_coord ("A", 1))
+      and cell_a2 = read_cell (cellname_to_coord ("A", 2))
+      and cell_a3 = read_cell (cellname_to_coord ("A", 3)) in
+
+      cell_a1.value <- Some(arg1_value);
+      cell_a2.value <- Some(arg2_value);
+
+      let function_res = eval_form cell_a3.formula in
+      (* Printf.printf ("Sheet:%s -- arg1:%s, arg2:%s, res:%s\n") (string_of_int s) (string_of_number arg1_value) (string_of_number arg2_value) (string_of_number function_res);
+      Printf.printf ("Formula was : %s\n") (form2string cell_a3.formula); *)
+      feuille_courante := current_sheet;
+      function_res
+  end
 
 (* ici un "and", car eval_formula et eval_cell sont a priori
    deux fonctions mutuellement récursives *)
@@ -101,13 +123,19 @@ and eval_cell i j =
 ;;
 
 
-(* fonctions qui à partir d'une formule f renvoie la liste des coordonnées des cellules apparaissant dans f (dépendances antérieures) *)
+(* Fonction qui à partir d'une formule f renvoie la liste des coordonnées
+ * des cellules apparaissant dans f (dépendances antérieures).
+ * Étant donné qu'il y a possiblement plusieurs feuilles de calcul et qu'on peut
+ * faire des appels sur d'autres feuilles de calcul, on peut avoir des dépendances
+ * cycliques sur plusieurs feuilles de calcul. Il faut donc retenir les coordonnées
+ * plus le numéro de la feuille. *)
 let back_dependancies f =
   let l = ref [] in
   let rec aux = function
     | Cst(a) -> ()
     | Cell(a,b) -> l := (a,b)::(!l)
     | Op(o,fs) -> List.iter aux fs
+    | Fun(s,arg1,arg2) -> () (* TODO *)
   in aux f;
   !l
 ;;
@@ -181,6 +209,7 @@ let uncycling_formula co f =
     | Cell c -> if c = co then true else let c0 = read_cell c in co_needed c0.formula
     | Cst _ -> false
     | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed l)) false fl
+    | Fun (s,arg1,arg2) -> false (* TODO *)
   in
   not (co_needed f)
 ;;
