@@ -14,6 +14,8 @@ let sheets = Array.init 10 (fun _ -> Array.make_matrix (fst size) (snd size) def
 
 let read_cell co = sheets.(!feuille_courante).(fst co).(snd co)
 
+let read_cell_from_sheet sheet co = sheets.(sheet).(fst co).(snd co)
+
 let update_cell_formula co f = sheets.(!feuille_courante).(fst co).(snd co).formula <- f
 let update_cell_value co v = sheets.(!feuille_courante).(fst co).(snd co).value <- v
 
@@ -133,9 +135,9 @@ let back_dependancies f =
   let l = ref [] in
   let rec aux = function
     | Cst(a) -> ()
-    | Cell(a,b) -> l := (a,b)::(!l)
+    | Cell(a,b) -> l := (!feuille_courante, (a,b))::(!l)
     | Op(o,fs) -> List.iter aux fs
-    | Fun(s,arg1,arg2) -> () (* TODO *)
+    | Fun(i,arg1,arg2) -> () (* TODO *)
   in aux f;
   !l
 ;;
@@ -144,8 +146,8 @@ let back_dependancies f =
 let update_back_dependancies co f =
   let rec apply_to_dependancies fonction = function (* fonction d'ordre supérieure *)
     | [] -> ()
-    | h::t -> let cellule = read_cell h in
-      cellule.dependancies <- (fonction co cellule.dependancies);
+    | h::t -> let cellule = read_cell_from_sheet (fst h) (snd h) in (* snd h est un couple: les coordonnées *)
+      cellule.dependancies <- (fonction (!feuille_courante, co) cellule.dependancies);
       apply_to_dependancies fonction t
   in
   let c = read_cell co in
@@ -157,27 +159,23 @@ let update_back_dependancies co f =
 
 (* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
 let update_up_dependancies co =
+  let rec apply_to_up_dependancies fonction = function (* fonction d'ordre supérieure *)
+    | Nil -> ()
+    | Node(racine,_,fils_gauche,fils_droit) ->
+      let cellule = read_cell_from_sheet (fst racine) (snd racine) in
+      fonction racine;
+      apply_to_up_dependancies fonction cellule.dependancies;
+      apply_to_up_dependancies fonction fils_gauche;
+      apply_to_up_dependancies fonction fils_droit
+  in
   let c = read_cell co in
   c.value <- None;
-  let rec aux_None = function
-    | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) -> let cellule = read_cell racine in
-      cellule.value <- None;
-      aux_None cellule.dependancies;
-      aux_None fils_gauche;
-      aux_None fils_droit
-  in aux_None c.dependancies;
+  apply_to_up_dependancies (fun racine -> let cellule = read_cell_from_sheet (fst racine) (snd racine) in
+    cellule.value <- None) c.dependancies;
   (* on doit d'abord tout mettre à None, puis tout recalculer dans les dépendances au cas où les dépendances dépendent d'elles-même entre elles
   (il y a des valeurs out-of-date à éliminer) *)
   let _ = eval_cell (fst co) (snd co) in
-  let rec aux_calcule = function
-    | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) ->  let cellule = read_cell racine in
-      let _ = eval_cell (fst racine) (snd racine) in
-      aux_calcule cellule.dependancies;
-      aux_calcule fils_gauche;
-      aux_calcule fils_droit
-  in aux_calcule c.dependancies
+  apply_to_up_dependancies (fun racine2 -> let racine = snd racine2 in let _ = eval_cell (fst racine) (snd racine) in ()) c.dependancies
 ;;
 
 (* Les cycles :
