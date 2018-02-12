@@ -7,6 +7,8 @@ let feuille_courante = ref 1;;
 
 let size = (100,100) (* lignes, colonnes *) (* Il fallait changer la taille pour autoriser des noms de colonne sur plusieurs lettres. *)
 
+let out_of_bounds co =
+  (0 > fst co) || (fst co >= 100) || (0 > snd co) || (snd co >= 100)
 (* le tableau que l'on manipule dans le programme *)
 (* tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
 
@@ -91,6 +93,13 @@ let rec eval_form fo = match fo with
   	| M -> List.fold_left mult_number (Int 1) (List.map eval_form fs)
   	| A -> div_number (List.fold_left add_number (Int 0) (List.map eval_form fs)) (Int (List.length fs))
   	| MAX -> List.fold_left max_number (Int min_int) (List.map eval_form fs)
+    | MIN -> List.fold_left min_number (Int max_int) (List.map eval_form fs)
+    | MINUS -> extract_value (List.fold_left minus_number None (List.map (fun f -> Some(eval_form f)) fs))
+    | OPPOSITE -> extract_value (List.fold_left minus_number (Some(Int 0)) (List.map (fun f -> Some(eval_form f)) fs))
+    | DIV -> extract_value (List.fold_left generalised_div_number None (List.map (fun f -> Some(eval_form f)) fs))
+    | INV -> extract_value (List.fold_left generalised_div_number (Some(Float 1.)) (List.map (fun f -> Some(eval_form f)) fs))
+    | MOD -> extract_value (List.fold_left mod_number None (List.map (fun f -> Some(eval_form f)) fs))
+    | IFTE -> Int 0
   end
   | Fun(s,arg1,arg2) -> begin
       (* On calcule les arguments, puis on bascule sur la feuille s *)
@@ -137,7 +146,15 @@ let back_dependancies f =
     | Cst(a) -> ()
     | Cell(a,b) -> l := (!feuille_courante, (a,b))::(!l)
     | Op(o,fs) -> List.iter aux fs
-    | Fun(i,arg1,arg2) -> () (* TODO *)
+    | Fun(i,arg1,arg2) -> (* C'est un peu moche mais on change la feuille courante pour mettre des dépendances. *)
+        begin
+          let backup = !feuille_courante in
+          feuille_courante := i;
+          let a3 = read_cell (cellname_to_coord ("A", 3)) in
+          l := (i, cellname_to_coord ("A", 3)) :: (!l);
+          aux a3.formula;
+          feuille_courante := backup
+        end
   in aux f;
   !l
 ;;
@@ -194,15 +211,16 @@ let update_up_dependancies co =
 
 let uncycling_formula co f =
   (** Regarde si la formule co=f(..) n'est pas cyclique, en supposant que la feuille de calcule n'est pas cyclique. *)
-  let rec co_needed = function
+  let rec co_needed current_sheet = function
       (* La remarque précécente nous assure que cette fonction termine bien, et qu'il n'y a pas besoin de structure
        * de donnée pour retenir chaque cellule qu'on croise dans les formules *)
-    | Cell c -> if c = co then true else let c0 = read_cell c in co_needed c0.formula
+    | Cell c -> if (out_of_bounds co) || (c = co && current_sheet = !feuille_courante) then true else let c0 = read_cell c in co_needed current_sheet c0.formula
     | Cst _ -> false
-    | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed l)) false fl
-    | Fun (s,arg1,arg2) -> false (* TODO *)
+    | Op (_, fl) -> List.fold_left (fun b -> fun l -> b || (co_needed current_sheet l)) false fl
+    | Fun (s,arg1,arg2) -> let a3 = read_cell_from_sheet current_sheet (cellname_to_coord ("A", 3)) in
+        (co_needed current_sheet arg1) || (co_needed current_sheet arg2) || co_needed s a3.formula
   in
-  not (co_needed f)
+  not (co_needed !feuille_courante f)
 ;;
 
 

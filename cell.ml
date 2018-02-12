@@ -40,6 +40,40 @@ let max_number x y = match x,y with
   | Float(f1), Float(f2) -> if f1 > f2 then x else y
 ;;
 
+let min_number x y = match x,y with
+  | Int(i1), Int(i2) -> if i1 < i2 then x else y
+  | Float(f1), Int(i2) -> if f1 < float_of_int i2 then x else y
+  | Int(i1), Float(f2) -> if float_of_int i1 < f2 then x else y
+  | Float(f1), Float(f2) -> if f1 < f2 then x else y
+
+let extract_value = function
+  | Some(x) -> x
+  | _ -> Int(0)
+;;
+
+let minus_number x y = match x,y with
+  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 - i2))
+  | Some(Float(f1)), Some(Int(i2)) -> Some(Float(f1 -. float_of_int i2))
+  | Some(Int(i1)), Some(Float(f2)) -> Some(Float(float_of_int i1 -. f2))
+  | Some(Float(f1)), Some(Float(f2)) -> Some(Float(f1 -. f2))
+  | None, Some(x) -> Some(x)
+  | _,_ -> Some(Int 0)
+;;
+
+let generalised_div_number x y = match x,y with
+  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 / i2))
+  | Some(Float(f1)), Some(Int(i2)) -> Some(Float(f1 /. float_of_int i2))
+  | Some(Int(i1)), Some(Float(f2)) -> Some(Float(float_of_int i1 /. f2))
+  | Some(Float(f1)), Some(Float(f2)) -> Some(Float(f1 /. f2))
+  | None, Some(x) -> Some(x)
+  | _,_ -> Some(Int 1)
+
+let mod_number x y = match x,y with
+(* Pas de modulo sur les flottants *)
+  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 mod i2))
+  | None, Some(x) -> Some(x)
+  | _,_ -> Some(Int 1)
+
 (* p.ex. ("B",7) *)
 type cellname = string*int
 
@@ -86,7 +120,7 @@ let coord_to_cellname co =
 ;;
 
 (* operations que l'on peut utiliser dans les formules *)
-type oper = S | M | A | MAX (* sum, multiply, average, max *)
+type oper = S | M | A | MAX | MIN | DIV | MOD | MINUS | INV | OPPOSITE | IFTE(* sum, multiply, average, max *)
 
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
  * ses arguments. On rajoute la possibilité de faire appel à une fonction. *)
@@ -122,6 +156,13 @@ let oper2string = function
   | M -> "MULT"
   | A -> "AVERAGE"
   | MAX -> "MAX"
+  | MIN -> "MIN"
+  | DIV -> "DIV"
+  | MOD -> "MOD"
+  | MINUS -> "MINUS"
+  | INV -> "INV"
+  | OPPOSITE -> "OPPOSITE"
+  | IFTE -> "IF _ THEN _ ELSE _ "
 
 let ps = print_string
 

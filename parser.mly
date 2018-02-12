@@ -33,7 +33,7 @@ let intervalle2list f1 f2 = match (f1, f2) with
 %token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
 %token <string> SHEET       /* le s avant le numéro de la feuille de calcul */
 %token LPAREN RPAREN EQUAL SEMICOL DOT COLON
-%token SUM MULT AVERAGE MAX SHOW SHOWALL SWITCHTO
+%token SUM MULT AVERAGE MAX SHOW SHOWALL SWITCHTO MIN DIV MOD MINUS INV OPPOSITE IFTE
 %token EOF
 
   /*
@@ -73,11 +73,20 @@ clist:
    | SHEET INT { ($2) }
   ;
 
+  ifte:
+   | IFTE { IFTE }
+  ;
+
   operand:
    | SUM { S }
    | MULT { M }
    | AVERAGE { A }
    | MAX { MAX }
+   | MIN { MIN }
+   | DIV { DIV }
+   | MOD { MOD }
+   | INV { INV }
+   | OPPOSITE { OPPOSITE }
   ;
 
   formula:
@@ -86,6 +95,8 @@ clist:
    | cell { Cell (Cell.cellname_to_coord $1) }
    | t_function LPAREN formula SEMICOL formula RPAREN { Fun($1,$3,$5) }
    | operand LPAREN forlist RPAREN { Op($1,$3) }
+   | ifte LPAREN triplet RPAREN { Op($1,$3) }
+
   ;
 
   forlist:
@@ -93,3 +104,6 @@ clist:
    | formula SEMICOL forlist { $1::$3 }
    | formula COLON forlist { intervalle2list $1 $3 }
   ;
+
+  triplet:
+   | formula SEMICOL formula SEMICOL formula { [$1;$3;$5] }
