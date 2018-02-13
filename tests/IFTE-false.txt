@@ -1,0 +1,5 @@
+A1=5
+A2=4
+A3=1
+B1=IFTE(MINUS(A1;A2;A3);5.;5)
+Show B1

@@ -1,78 +1,5 @@
 open Tree
-
-(* les nombres avec lesquels on calcule *)
-type number = Float of float | Int of int
-let print_number = function
-  | Float(f) -> print_float f
-  | Int(i) -> print_int i
-;;
-
-let string_of_number = function
-  | Float(f) -> string_of_float f
-  | Int(i) -> string_of_int i
-;;
-
-let add_number x y = match x,y with
-  | Int(i1), Int(i2) -> Int(i1 + i2)
-  | Float(f1), Int(i2) -> Float(f1 +. float_of_int i2)
-  | Int(i1), Float(f2) -> Float(float_of_int i1 +. f2)
-  | Float(f1), Float(f2) -> Float(f1 +. f2)
-;;
-
-let mult_number x y = match x,y with
-  | Int(i1), Int(i2) -> Int(i1 * i2)
-  | Float(f1), Int(i2) -> Float(f1 *. float_of_int i2)
-  | Int(i1), Float(f2) -> Float(float_of_int i1 *. f2)
-  | Float(f1), Float(f2) -> Float(f1 *. f2)
-;;
-
-let div_number x y = match x,y with (* pour celle là il faut imposer le résultat en flottant *)
-  | Int(i1), Int(i2) -> Float(float_of_int i1 /. float_of_int i2)
-  | Float(f1), Int(i2) -> Float(f1 /. float_of_int i2)
-  | Int(i1), Float(f2) -> Float(float_of_int i1 /. f2)
-  | Float(f1), Float(f2) -> Float(f1 /. f2)
-;;
-
-let max_number x y = match x,y with
-  | Int(i1), Int(i2) -> if i1 > i2 then x else y
-  | Float(f1), Int(i2) -> if f1 > float_of_int i2 then x else y
-  | Int(i1), Float(f2) -> if float_of_int i1 > f2 then x else y
-  | Float(f1), Float(f2) -> if f1 > f2 then x else y
-;;
-
-let min_number x y = match x,y with
-  | Int(i1), Int(i2) -> if i1 < i2 then x else y
-  | Float(f1), Int(i2) -> if f1 < float_of_int i2 then x else y
-  | Int(i1), Float(f2) -> if float_of_int i1 < f2 then x else y
-  | Float(f1), Float(f2) -> if f1 < f2 then x else y
-
-let extract_value = function
-  | Some(x) -> x
-  | _ -> Int(0)
-;;
-
-let minus_number x y = match x,y with
-  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 - i2))
-  | Some(Float(f1)), Some(Int(i2)) -> Some(Float(f1 -. float_of_int i2))
-  | Some(Int(i1)), Some(Float(f2)) -> Some(Float(float_of_int i1 -. f2))
-  | Some(Float(f1)), Some(Float(f2)) -> Some(Float(f1 -. f2))
-  | None, Some(x) -> Some(x)
-  | _,_ -> Some(Int 0)
-;;
-
-let generalised_div_number x y = match x,y with
-  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 / i2))
-  | Some(Float(f1)), Some(Int(i2)) -> Some(Float(f1 /. float_of_int i2))
-  | Some(Int(i1)), Some(Float(f2)) -> Some(Float(float_of_int i1 /. f2))
-  | Some(Float(f1)), Some(Float(f2)) -> Some(Float(f1 /. f2))
-  | None, Some(x) -> Some(x)
-  | _,_ -> Some(Int 1)
-
-let mod_number x y = match x,y with
-(* Pas de modulo sur les flottants *)
-  | Some(Int(i1)), Some(Int(i2)) -> Some(Int(i1 mod i2))
-  | None, Some(x) -> Some(x)
-  | _,_ -> Some(Int 1)
+open Numbers
 
 (* p.ex. ("B",7) *)
 type cellname = string*int
@@ -81,6 +8,11 @@ type cellname = string*int
 (* les deux fonctions ci-dessous sont a reprendre, un jour ou l'autre :
  * elles ne marchent que pour des noms de colonnes ne comportant qu'un
  * caractère *)
+
+(* Dans la suite :
+ * PAR CONVENTION : cn désigne un nom de cellule
+ *                  co désigne des coordonnées de cellule *)
+
 let cellname_to_coord cn =
   let column = ref 0 in
   if String.length (fst cn) > 1 then
@@ -152,6 +84,7 @@ let cell_val2string c = match c.value with
   | Some n -> string_of_number n
 
 let oper2string = function
+(* Converti un opérateur en chaîne de caractères *)
   | S -> "SUM"
   | M -> "MULT"
   | A -> "AVERAGE"
@@ -167,6 +100,7 @@ let oper2string = function
 let ps = print_string
 
 let rec list2string f = function
+(* Converti une liste en chaine de ce caractères *)
   | [x] -> f x
   | x::xs ->
      begin
@@ -175,6 +109,7 @@ let rec list2string f = function
   | _ -> failwith "show_list: the list shouldn't be empty"
 
 let rec show_list f = function
+(* Affiche une liste *)
   | [x] -> f x
   | x::xs ->
      begin
@@ -185,6 +120,7 @@ let rec show_list f = function
   | _ -> failwith "show_list: the list shouldn't be empty"
 
 let rec form2string = function
+(* Converti une formule en chaîne de caractères *)
   | Cell c -> cell_name2string (coord_to_cellname c)
   | Cst n -> string_of_number n
   | Op(o,fl) ->
@@ -194,3 +130,4 @@ let rec form2string = function
   | Fun(s,arg1,arg2) -> "s" ^ (string_of_int s) ^ "(" ^ form2string arg1 ^ ";" ^ form2string arg2 ^ ")"
 
 let rec show_form f = ps (form2string f)
+(* Affiche une formule *)

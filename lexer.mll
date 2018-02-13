@@ -31,6 +31,6 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
   | "OPPOSITE" { OPPOSITE }
   | "IFTE" { IFTE }
   | ('-'|'+')?['0'-'9']+'.'['0'-'9']* as s { NBR (float_of_string s) }
-  | ['0'-'9']+ as s { INT (int_of_string s) }
+  | ('-'|'+')?['0'-'9']+ as s { INT (int_of_string s) }
   | ['A'-'Z']+ as s { CELLROW s }
   | 's'+       as s { SHEET s }

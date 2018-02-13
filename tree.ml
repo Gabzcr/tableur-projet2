@@ -22,11 +22,13 @@ let height = function
  * Ce sont elles qui permettent d'équilibrer l'arbre *)
 
 let rotate_right = function
+(* Rotation droite *)
   | Node (x, h, Node(fg_x, fg_h, fg_gauche, fg_droit), fd) ->
      Node (fg_x, 1 + max (height fg_gauche) (1 + max (height fg_droit) (height fd)), fg_gauche, Node (x, 1 + max (height fg_droit) (height fd), fg_droit, fd))
   | _ -> failwith "Rotation droite impossible"
 
 let rotate_left = function
+(* Rotation gauche *)
   | Node (x, h, fg, Node (fd_x, fd_h, fd_gauche, fd_droit)) ->
      Node (fd_x, 1 + max (height fd_droit) (1 + max (height fg) (height fd_gauche)), Node (x, 1 + max (height fg) (height fd_gauche), fg, fd_gauche), fd_droit)
   | _ -> failwith "Rotation gauche impossible"
@@ -40,6 +42,8 @@ let right_tree = function
   | _ -> failwith "Pas d'arbre droit"
 
 let equilibrate a = match a with
+(* Fonction qui équilibre un arbre pour qu'il ait
+ * la propriété AVL *)
   | Nil -> Nil
   | Node (_, _, fg, fd) -> let hg = height fg
          and hd = height fd in
@@ -48,6 +52,7 @@ let equilibrate a = match a with
          else a
 
 let rec insert x a = match a with
+(* Insère l'élément dans l'arbre spécifié *)
   | Nil -> Node (x, 1, Nil, Nil)
   | Node (y, h, fg, fd) -> equilibrate
 			   (if x = y then a
@@ -58,10 +63,13 @@ let rec insert x a = match a with
 
 
 let rec list2tree = function
+(* À partir d'une liste, crée un arbre AVL qui contient
+ * les mêmes éléments. *)
   | [] -> Nil
   | h :: t -> insert h (list2tree t)
 
 let tree2list a =
+(* À partir d'un arbre AVL, crée une liste de ses éléments *)
   let rec tree2list_aux accu = function
     | Nil ->  accu
     | Node (x, _, fg, fd) -> x :: (tree2list_aux (tree2list_aux accu fg) fd)
@@ -137,6 +145,9 @@ let _ = delete 4 a
 
 (* Autres fonctions *)
 let rec search x = function
+(* Fonction qui renvoie un booléen :
+ * true si x est dans l'arbre
+ * false sinon. *)
   | Nil -> false
   | Node (y, _, fg, fd) -> if x = y then true
 			   else if x < y then search x fg

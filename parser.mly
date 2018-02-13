@@ -1,6 +1,7 @@
 %{
 (* --- préambule: ici du code Caml --- *)
 
+open Numbers
 open Cell
 open Command
 
@@ -83,6 +84,7 @@ clist:
    | AVERAGE { A }
    | MAX { MAX }
    | MIN { MIN }
+   | MINUS { MINUS }
    | DIV { DIV }
    | MOD { MOD }
    | INV { INV }

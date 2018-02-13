@@ -1,6 +1,7 @@
 (* tableau de cellules *)
 open Cell
 open Tree
+open Numbers
 
 let naive = ref false;;
 let feuille_courante = ref 1;;
@@ -73,6 +74,8 @@ let show_sheet () =
 (********** calculer les valeurs à partir des formules *************)
 
 let rec apply_to_up_dependancies fonction = function (* fonction d'ordre supérieure *)
+(* Applique la fonction spécifiée au dépendances montantes du noeud spécfié *)
+(* Cette fonction est utilisée plus tard - mais définie ici car utilisée à plusieurs endroits *)
   | Nil -> ()
   | Node(racine,_,fils_gauche,fils_droit) ->
     let cellule = read_cell_from_sheet (fst racine) (snd racine) in
@@ -90,8 +93,9 @@ let invalidate_sheet () =
   sheet_iter f
 ;;
 
-(* à faire : le cœur du programme *)
+
 let rec eval_form fo = match fo with
+(* Fonction pricipale : très lourde car il y a pas mal d'opérateurs *)
   | Cst n -> n
   | Cell (p,q) -> begin
   	 match (eval_cell p q) with
@@ -110,8 +114,16 @@ let rec eval_form fo = match fo with
     | DIV -> extract_value (List.fold_left generalised_div_number None (List.map (fun f -> Some(eval_form f)) fs))
     | INV -> extract_value (List.fold_left generalised_div_number (Some(Float 1.)) (List.map (fun f -> Some(eval_form f)) fs))
     | MOD -> extract_value (List.fold_left mod_number None (List.map (fun f -> Some(eval_form f)) fs))
-    | IFTE -> Int 0
+    | IFTE ->
+    begin
+      match fs with
+      | [f1;f2;f3] -> if is_zero (eval_form f1) then eval_form f3
+                      else eval_form f2
+      | _ -> failwith "If then else : Wrong arguments"
+    end
   end
+
+(* Pour les fonctions : la fonction paraît lourde mais parce que c'est assez itératif. *)
   | Fun(s,arg1,arg2) -> begin
       (* On calcule les arguments, puis on bascule sur la feuille s *)
       (* Les arguments sont alors placés dans A1 et A2 et le résultat va dans A3 *)

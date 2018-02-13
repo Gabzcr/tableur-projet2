@@ -12,6 +12,7 @@ type comm = Upd of cellname * form | Show of cellname | ShowAll | SwitchTo of sh
 
 (************ affichage **************)
 let show_comm c =
+(* Fonction de déboggage pour afficher une commande *)
   match c with
   | Upd (c,f) ->
      begin

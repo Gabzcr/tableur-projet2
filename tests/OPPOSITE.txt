@@ -1,0 +1,3 @@
+A1 = 112.0
+A2 = OPPOSITE(A1)
+Show A2
