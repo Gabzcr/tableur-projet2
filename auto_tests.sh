@@ -2,9 +2,11 @@
 
 tests_dir="tests/"
 sol_dir="solutions/"
+
+
 make
 
-found=true
+
 echo "\n **************** Starting Tests *****************"
 for test in $(ls $tests_dir)
 do

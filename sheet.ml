@@ -72,6 +72,17 @@ let show_sheet () =
 
 (********** calculer les valeurs à partir des formules *************)
 
+let rec apply_to_up_dependancies fonction = function (* fonction d'ordre supérieure *)
+  | Nil -> ()
+  | Node(racine,_,fils_gauche,fils_droit) ->
+    let cellule = read_cell_from_sheet (fst racine) (snd racine) in
+    fonction racine;
+    apply_to_up_dependancies fonction cellule.dependancies;
+    apply_to_up_dependancies fonction fils_gauche;
+    apply_to_up_dependancies fonction fils_droit
+;;
+
+
 (* on marque qu'on doit tout recalculer en remplissant le tableau de "None"
  * N.B. : on pourrait être moins naïf *)
 let invalidate_sheet () =
@@ -113,6 +124,11 @@ let rec eval_form fo = match fo with
       let cell_a1 = read_cell (cellname_to_coord ("A", 1))
       and cell_a2 = read_cell (cellname_to_coord ("A", 2))
       and cell_a3 = read_cell (cellname_to_coord ("A", 3)) in
+
+      apply_to_up_dependancies (fun racine -> let cellule = read_cell_from_sheet (fst racine) (snd racine) in
+        cellule.value <- None) cell_a1.dependancies;
+      apply_to_up_dependancies (fun racine -> let cellule = read_cell_from_sheet (fst racine) (snd racine) in
+        cellule.value <- None) cell_a2.dependancies;
 
       cell_a1.value <- Some(arg1_value);
       cell_a2.value <- Some(arg2_value);
@@ -176,15 +192,6 @@ let update_back_dependancies co f =
 
 (* fonction qui calcule les nouvelles valeurs des cellules qui dépendent (récursivement) de la cellule modifée *)
 let update_up_dependancies co =
-  let rec apply_to_up_dependancies fonction = function (* fonction d'ordre supérieure *)
-    | Nil -> ()
-    | Node(racine,_,fils_gauche,fils_droit) ->
-      let cellule = read_cell_from_sheet (fst racine) (snd racine) in
-      fonction racine;
-      apply_to_up_dependancies fonction cellule.dependancies;
-      apply_to_up_dependancies fonction fils_gauche;
-      apply_to_up_dependancies fonction fils_droit
-  in
   let c = read_cell co in
   c.value <- None;
   apply_to_up_dependancies (fun racine -> let cellule = read_cell_from_sheet (fst racine) (snd racine) in
